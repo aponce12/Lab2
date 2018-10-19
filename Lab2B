@@ -1,0 +1,316 @@
+##CS 2302 Data Structures
+##Instructor:Diego Aguirre
+##TA: Anindita Nath
+##Project 2 Option B
+##Modified and submitted by Andres Ponce 80518680
+##Date of last modification 10/18/18
+##Purpose: Create a linked list with a given file(10 million passwords)
+##use directory to create the linked list. Do not repeat passwords check
+##if a password has been seen already and increase the counter.
+##Use bubble and merge sort and print the first 20 most used passwords.
+
+import os
+import random
+import time
+
+
+class Node(object):
+    password = ""
+    count = -1
+    next = None
+ #Node class with password, count, and next attributes.
+    
+    def __init__(self, password, count, next):
+        self.password = password                            
+        self.count = count                                  
+        self.next = next
+        
+#findItem function used to validate a node.
+    def findItem(self, item):
+        if self.password == item:
+            return True
+        else:
+            return False
+    #Linked list class with addListItem, listLength, printList,
+    #printListB, findItem functions.
+class LinkedList:
+    def __init__(self):
+
+        self.head=None
+        self.tail=None
+        return
+    #addListItem function used to add an item into a linkedlist
+    def addListItem(self, item, count):
+        if not isinstance(item, Node):
+            item = Node(item,count,Node.next)
+        if self.head is None:
+            self.head = item
+        else:
+            self.tail.next = item
+        self.tail = item
+        return
+    #listLength function returns the length of a linked list
+    def listLength(self):
+        count = 0
+        currentNode = self.head
+
+        while currentNode is not None:
+            count = count+1
+            currentNode = currentNode.next
+        return count
+    #printList function prints the entire list
+    def printList(self):
+        currentNode = self.head
+        while currentNode is not None:
+            passs=currentNode.password
+            numb=currentNode.count
+            print(passs, numb)
+            currentNode = currentNode.next
+        return
+    #printListB function prints the first 20 items in the list
+    def printListB(self):
+        currentNode = self.head
+        for i in range (20):
+            if currentNode is None:
+                break
+            passs=currentNode.password
+            numb=currentNode.count
+            print(passs, numb)
+            currentNode = currentNode.next
+        return
+    #searchItem function looks for a given value into the linked list
+    #Optimized to increase the counter if the item is already in the linked list
+    def searchItem(self, item):
+        currentNode = self.head
+        
+        while currentNode is not None:
+            count=currentNode.count
+            if currentNode.findItem(item):
+                currentNode.count=count+1
+                return True
+            currentNode=currentNode.next
+        return False
+
+##-----------------------------------Solution A------------------------------------------##
+##Every time you read a password from the file, check (using a loop) if that
+##password has already been added to the linked list. That is, you need to traverse the
+##linked list to see if that password has been added already. If the password is already in
+##your linked list, update the number of times the password has been seen in the file.
+##Otherwise, add a password to the linked list.
+
+def createListA(file):
+    try:
+        t1_start = time.perf_counter()
+        t2_start = time.process_time()
+        llist=LinkedList()
+        i=0
+##    The for loop reads the entire file
+##    it splits each line and checks if a
+##    new line command is in the string.
+##    checks if the array given by the split
+##    is bigger than 1 element. It search the
+##    password into the linked list and if
+##    it is not present it will add it to
+##    the end of the linked list
+        for line in file:
+            if '\n' in line:
+                line=line[:-1]
+            newLine=line.split()
+            i=i+1
+            #print(i,newLine)
+            if len(newLine) != (2):
+                newLine.append("[No password]")
+            if not llist.searchItem(newLine[1]):
+                llist.addListItem(newLine[1],1)
+        t1_stop = time.perf_counter()
+        t2_stop = time.process_time()
+        print("Elapsed time:", ((t1_stop-t1_start)/1000000000),"seconds")
+        print("CPU process time:", ((t2_stop-t2_start)/1000000000),"seconds")
+    except Exception as e:
+        print ("Type error: " + str(e))
+    return llist
+    
+
+
+##-----------------------------------Solution B------------------------------------------##
+##Instead of traversing the linked list to check if a password has been seen before, we will
+##be using what is called a dictionary.
+
+def createListB(file):
+    t1_start = time.perf_counter()
+    t2_start = time.process_time()
+    listWithDuplicates=[]
+    count=0
+    ##Same spliting and editing process is used for the string
+    ##it appends the password into an array, then a dict is
+    ##created and filled with the array information
+    ##the dict is then passed to a linked list.
+    try:
+        for line in file:
+            if '\n' in line:
+                line=line[:-1]
+            newLine=line.split()
+            if len(newLine) != (2):
+                newLine.append("[No password]")
+            count=count+1
+            #print(count,newLine[1])
+            listWithDuplicates.append(newLine[1])
+        dict={}
+        for item in listWithDuplicates:
+            if item in dict:
+                dict[item]=dict[item]+1
+            else:
+                dict[item]=1
+        llist=LinkedList()
+        for item in dict:
+            llist.addListItem(item,dict[item])
+        t1_stop = time.perf_counter()
+        t2_stop = time.process_time()
+        print("Elapsed time:", ((t1_stop-t1_start)/1000000000),"seconds")
+        print("CPU process time:", ((t2_stop-t2_start)/1000000000),"seconds")
+        return llist
+    except Exception as e:
+        print ("Type error: " + str(e))
+
+    ##Bubble sort function to enhanced to sort linked list
+    ##in descending order. Two while loops are used to check
+    ##the status of the linked list. Pointers are also handled
+    ##and swapped as needed.
+def bubbleSort(llist):
+    try:
+        t1_start = time.perf_counter()
+        t2_start = time.process_time()
+        if (llist.listLength()>1):
+            swap=True
+            while swap:
+                current = llist.head
+                previous=None
+                Next=current.next
+                swap=False
+                while Next is not None:
+                    if current.count < Next.count:
+                        temp = current
+                        current=Next
+                        Next=temp
+                        swap=True
+                        
+                        if previous is not None:
+                            sig=current.next
+                            previous.next=current
+                            current.next=Next
+                            Next.next=sig    
+                        else:
+                            sig=current.next
+                            llist.head=current
+                            current.next=Next
+                            Next.next=sig
+                        previous=Next
+                        Next=current.next
+                        
+                    else:
+                        previous=current
+                        current=Next
+                        Next=Next.next
+        t1_stop = time.perf_counter()
+        t2_stop = time.process_time()
+        print("Elapsed time:", ((t1_stop-t1_start)/1000000000),"seconds")
+        print("CPU process time:", ((t2_stop-t2_start)/1000000000),"seconds")
+    except Exception as e:
+        print ("Type error: " + str(e))
+
+    ##Merge sort function is used to sort the linked list.
+    ##It receives the head of a linked list, then it uses
+    ##divide list to go to the middle of the list, then
+    ##list is merged according to the given condition.
+    ##it will repeat doing the same process recursively
+def mergeSort(head):
+    try:
+        if head is None or head.next is None:
+            return head
+        List1, List2 = divideLists(head)
+        List1 = mergeSort(List1)
+        List2 = mergeSort(List2)
+        head = mergeLists(List1, List2)
+        
+        return head
+    except Exception as e:
+        print ("Type error: " + str(e))
+
+def mergeLists(List1, List2):
+    try:
+        temp = None
+        if List1 is None:
+            return List2
+        if List2 is None:
+            return List1
+        if List1.count >= List2.count:
+            temp = List1
+            temp.next = mergeLists(List1.next, List2)
+        else:
+            temp = List2
+            temp.next = mergeLists(List1, List2.next)
+        return temp
+    except Exception as e:
+        print ("Type error: " + str(e))
+
+def divideLists(head):
+    try:
+        slow = head                     
+        fast = head                     
+        if fast:
+            fast = fast.next            
+        while fast:
+            fast = fast.next            
+            if fast:
+                fast = fast.next
+                slow = slow.next
+        mid = slow.next
+        slow.next = None
+        return head, mid
+    except Exception as e:
+        print ("Type error: " + str(e))
+
+    ##Menu to choose options to use solution A or B to create the linked list
+    ##and choose a sorting option between bubble sort and merge sort
+def menu(file):
+    try:
+        asw=input("Choose an option to create the Linked List, A or B\n")
+        if asw is "A":
+            llist=createListA(file)
+            #llist.printList()
+        elif asw is "B":    
+            llist=createListB(file)
+            #llist.printList()
+        else:
+            print("Choose A or B")  
+        asw=input("Choose an option to sort, A=Bubble Sort or B=Merge Sort\n")
+        if asw is "A":
+            bubbleSort(llist)
+            llist.printListB()
+        elif asw is "B":
+            t1_start = time.perf_counter()
+            t2_start = time.process_time()
+            llist.head=mergeSort(llist.head)
+            t1_stop = time.perf_counter()
+            t2_stop = time.process_time()
+            print("Elapsed time:", ((t1_stop-t1_start)/1000000000),"seconds")
+            print("CPU process time:", ((t2_stop-t2_start)/1000000000),"seconds")
+            llist.printListB()
+        else:
+            print("Choose A or B")
+    except Exception as e:
+        print ("Type error: " + str(e))
+    
+def main():
+    try:
+        path=input("Enter path: ")
+        path=path[2:]
+        start_path = (r""+path+"")
+        file=open(start_path,"r")
+        menu(file)
+    except Exception as e:
+        print ("Type error: " + str(e))
+        print(traceback.format_exc())
+    
+main ()
+
